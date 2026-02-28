@@ -1,0 +1,39 @@
+name: 运行 FeedCraft (AI翻译RSS)
+
+on:
+  workflow_dispatch: # 允许你手动点击运行按钮！
+  schedule:
+    - cron: '0 0,12 * * *' # 每天自动运行两次 (格林威治时间0点和12点)
+
+permissions:
+  contents: write # 赋予最高权限：允许把生成的 XML 文件保存到你的仓库里！
+
+jobs:
+  run-and-save:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 下载你的代码
+        uses: actions/checkout@v4
+
+      - name: 2. 准备运行环境 (Go)
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: 3. 开始执行 AI 翻译和总结！
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # 把你的大模型钥匙拿出来用
+        run: |
+          # 运行程序并读取你的 config.yml (如果你建的是 config.yaml，把下面这行改一下)
+          go run . -c config.yml
+
+      - name: 4. 把生成的 XML 存入你的仓库
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          # 找到所有生成的 xml 文件并准备保存
+          git add *.xml 
+          # 提交保存
+          git commit -m "🤖 AI已完成最新文章的翻译和总结" || echo "没有新文章更新，跳过保存"
+          # 推送到你的 GitHub 仓库
+          git push
