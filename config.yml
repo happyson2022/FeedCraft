@@ -25,3 +25,4 @@ feeds:
     provider: my_gemini 
     prompt: title_and_summary 
     fetch_full_text: true # 让AI抓取全文再总结，更准确
+    
